@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Inter } from "next/font/google";
+import { Cormorant_Garamond, Manrope } from "next/font/google";
 import "./globals.css";
 import { siteConfig } from "@/lib/siteConfig";
 
@@ -10,10 +10,10 @@ const cormorant = Cormorant_Garamond({
   display: "swap"
 });
 
-const inter = Inter({
+const manrope = Manrope({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-inter",
+  variable: "--font-manrope",
   display: "swap"
 });
 
@@ -61,8 +61,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${cormorant.variable} ${inter.variable}`}>{children}</body>
+    <html lang="en" className={`${cormorant.variable} ${manrope.variable}`}>
+      <body>{children}</body>
     </html>
   );
 }
