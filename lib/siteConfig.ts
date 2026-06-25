@@ -113,7 +113,7 @@ export const siteConfig = {
 ] as GalleryImage[]
   },
   seo: {
-    siteUrl: "https://aurestudio.in",
+    siteUrl: "https://aure-invitation.vercel.app",
     title: "AURE STUDIO – Exclusive Launch High Tea",
     description:
       "Join us as we unveil AURE STUDIO – The People Groomers. Experience luxury, innovation, beauty, wellness, and hospitality in a world-class launch event.",
