@@ -1,28 +1,19 @@
 "use client";
 
 import Image from "next/image";
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import gsap from "gsap";
 import {
   CalendarDays,
   ChevronDown,
   Clock,
-  Facebook,
-  Globe2,
-  Instagram,
-  Mail,
   MapPin,
-  MessageCircle,
   Navigation,
   Pause,
-  Phone,
   Play,
-  Send,
   Share2,
   Sparkles,
-  UserRound,
-  UsersRound,
   Volume2,
   VolumeX
 } from "lucide-react";
@@ -127,7 +118,7 @@ function Splash({ onEnter }: { onEnter: () => void }) {
       <AnimatedParticles />
       <motion.div className="splash-inner" initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 1.15 }}>
         <motion.div className="logo-reveal" initial={{ clipPath: "inset(0 100% 0 0)" }} animate={{ clipPath: "inset(0 0% 0 0)" }} transition={{ duration: 1.4, ease: "easeInOut" }}>
-          <Image src={siteConfig.assets.logo} alt={`${siteConfig.brand.name} logo`} width={620} height={190} priority />
+          <Image src={siteConfig.assets.logo} alt={`${siteConfig.brand.name} logo`} width={1240} height={380} priority />
         </motion.div>
         <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.75, duration: 0.8 }}>
           {siteConfig.brand.tagline}
@@ -151,7 +142,7 @@ function Hero() {
       <AnimatedParticles />
       <motion.div className="hero-copy" style={{ y: copyY }} initial="hidden" animate="visible" transition={{ staggerChildren: 0.14 }}>
         <motion.div variants={fadeUp} className="hero-mark">
-          <Image src={siteConfig.assets.logo} alt={siteConfig.brand.name} width={520} height={170} priority />
+          <Image src={siteConfig.assets.logo} alt={siteConfig.brand.name} width={1040} height={340} priority />
         </motion.div>
         <motion.p variants={fadeUp} className="eyebrow">{siteConfig.event.name}</motion.p>
         <motion.h1 variants={fadeUp}>{siteConfig.event.headline}</motion.h1>
@@ -160,8 +151,7 @@ function Hero() {
           <span>{siteConfig.event.dayLabel}</span>
           <span>{siteConfig.event.timeLabel}</span>
         </motion.div>
-        <motion.a variants={fadeUp} href="#rsvp" className="primary-cta">
-          Reserve Your Invitation
+        <motion.a variants={fadeUp} href="#details" className="primary-cta">
           <Sparkles size={18} />
         </motion.a>
       </motion.div>
@@ -344,142 +334,11 @@ function Location() {
   );
 }
 
-function Gallery() {
-  const images = siteConfig.assets.gallery;
-  if (images.length === 0) {
-    return (
-      <section className="section-shell" id="gallery">
-        <SectionHeader kicker="Studio gallery" title="A visual walkthrough of the AURE STUDIO." />
-        <p className="gallery-empty">Gallery images will be available soon.</p>
-      </section>
-    );
-  }
-  return (
-    <section className="section-shell" id="gallery">
-      <SectionHeader kicker="Studio gallery" title="A visual walkthrough of the AURE STUDIO." />
-      <div className="masonry">
-        {images.map((img) => (
-          <motion.figure
-            key={img.src}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <Image src={img.src} alt={img.alt} width={800} height={600} />
-          </motion.figure>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function RsvpSection() {
-  const [submitted, setSubmitted] = useState(false);
-  const [sending, setSending] = useState(false);
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setSending(true);
-    const form = e.currentTarget;
-    const data = new FormData(form);
-    const name = data.get("name") as string;
-    const email = data.get("email") as string;
-    const phone = data.get("phone") as string;
-    const guests = data.get("guests") as string;
-    const message = data.get("message") as string;
-
-    const whatsappMsg = encodeURIComponent(
-      `RSVP from ${name}\nEmail: ${email}\nPhone: ${phone}\nGuests: ${guests}\nMessage: ${message}`
-    );
-
-    setTimeout(() => {
-      setSending(false);
-      setSubmitted(true);
-      window.open(`https://wa.me/${siteConfig.rsvp.whatsappNumber}?text=${whatsappMsg}`, "_blank");
-    }, 600);
-  };
-
-  if (submitted) {
-    return (
-      <section className="section-shell" id="rsvp">
-        <SectionHeader kicker="RSVP" title="Your invitation has been received." />
-        <p className="story-body">Thank you for confirming your attendance. We look forward to welcoming you to AURE STUDIO.</p>
-      </section>
-    );
-  }
-
-  return (
-    <section className="section-shell" id="rsvp">
-      <SectionHeader kicker="RSVP" title="Reserve your place for the exclusive launch." />
-      <form className="rsvp-form" onSubmit={handleSubmit}>
-        <label>
-          <UserRound size={16} />
-          <span>Full Name</span>
-          <input type="text" name="name" required placeholder="Your full name" />
-        </label>
-        <label>
-          <Mail size={16} />
-          <span>Email</span>
-          <input type="email" name="email" required placeholder="your@email.com" />
-        </label>
-        <label>
-          <Phone size={16} />
-          <span>Phone</span>
-          <input type="tel" name="phone" required placeholder="+91 99999 99999" />
-        </label>
-        <label>
-          <UsersRound size={16} />
-          <span>Total Guests</span>
-          <input type="number" name="guests" min={1} max={10} defaultValue={1} />
-        </label>
-        <label className="notes">
-          <MessageCircle size={16} />
-          <span>Notes (optional)</span>
-          <textarea name="message" rows={3} placeholder="Any dietary preferences or special requests..." />
-        </label>
-        <div className="form-actions">
-          <button type="submit" disabled={sending}>
-            {sending ? "Sending..." : "Confirm Attendance"}
-            <Send size={16} />
-          </button>
-          <a
-            href={`https://wa.me/${siteConfig.rsvp.whatsappNumber}?text=${encodeURIComponent(siteConfig.rsvp.whatsappMessage)}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <MessageCircle size={16} />
-            RSVP via WhatsApp
-          </a>
-        </div>
-        <p className="form-note">Your details remain private and will only be used for this event.</p>
-      </form>
-    </section>
-  );
-}
-
 function SocialFooter() {
   return (
     <footer className="social-footer">
       <Image src={siteConfig.assets.wordmark} alt={siteConfig.brand.name} width={360} height={40} />
       <p>{siteConfig.brand.tagline} — {siteConfig.event.dateLabel}</p>
-      <div>
-        <a href={siteConfig.social.instagram} target="_blank" rel="noreferrer">
-          <Instagram size={16} />
-          Instagram
-        </a>
-        <a href={siteConfig.social.facebook} target="_blank" rel="noreferrer">
-          <Facebook size={16} />
-          Facebook
-        </a>
-        <a href={siteConfig.social.whatsapp} target="_blank" rel="noreferrer">
-          <MessageCircle size={16} />
-          WhatsApp
-        </a>
-        <a href={siteConfig.social.website} target="_blank" rel="noreferrer">
-          <Globe2 size={16} />
-          Website
-        </a>
-      </div>
       <small>&copy; {new Date().getFullYear()} {siteConfig.brand.name}. All rights reserved.</small>
     </footer>
   );
@@ -511,8 +370,6 @@ export default function Home() {
       <CountdownSection />
       <EventDetails />
       <Location />
-      <Gallery />
-      <RsvpSection />
       <SocialFooter />
       <button
         className="pause-motion"
