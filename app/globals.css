@@ -266,10 +266,24 @@ img:not([data-nimg="fill"]) {
   margin: 0;
   font-family: var(--font-display), Georgia, serif;
   font-weight: 400;
-  font-size: var(--display-l);
-  line-height: 1.02;
-  letter-spacing: 0;
-  max-width: 12ch;
+  font-size: clamp(1.55rem, 3.2vw, 2.6rem);
+  line-height: 1.18;
+  letter-spacing: 0.015em;
+  max-width: 21ch;
+  color: rgba(244, 242, 242, 0.82);
+  text-wrap: balance;
+}
+
+.hero-copy > .eyebrow {
+  font-family: var(--font-display), Georgia, serif;
+  font-size: clamp(3rem, 7vw, 6rem);
+  font-weight: 500;
+  line-height: 0.96;
+  letter-spacing: 0.035em;
+  text-transform: none;
+  color: var(--ivory);
+  text-shadow: 0 1rem 2.5rem rgba(0, 0, 0, 0.32);
+  max-width: 10ch;
   text-wrap: balance;
 }
 

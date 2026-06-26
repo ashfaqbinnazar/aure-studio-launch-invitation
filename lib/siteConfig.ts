@@ -29,12 +29,9 @@ export const siteConfig = {
         "Janatha, Palarivattom",
         "Ernakulam, Kerala 682025"
       ],
-      mapsUrl:
-        "https://www.google.com/maps/search/?api=1&query=First%20Floor%20Metro%20Pillar%20544%20Stadium%20Road%20Janatha%20Palarivattom%20Ernakulam%20Kerala%20682025",
-      directionsUrl:
-        "https://www.google.com/maps/dir/?api=1&destination=First%20Floor%20Metro%20Pillar%20544%20Stadium%20Road%20Janatha%20Palarivattom%20Ernakulam%20Kerala%20682025",
-      embedUrl:
-        "https://www.google.com/maps?q=First%20Floor%20Metro%20Pillar%20544%20Stadium%20Road%20Janatha%20Palarivattom%20Ernakulam%20Kerala%20682025&output=embed"
+      mapsUrl: "https://maps.app.goo.gl/akBFJ5X7LzZPMUUC6",
+      directionsUrl: "https://maps.app.goo.gl/akBFJ5X7LzZPMUUC6",
+      embedUrl: "https://www.google.com/maps?q=10.0015011,76.3020176&output=embed"
     }
   },
   story: {
