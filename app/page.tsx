@@ -2,8 +2,7 @@
 
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
-import gsap from "gsap";
+import { motion, useScroll, useTransform, MotionConfig, useReducedMotion } from "framer-motion";
 import {
   CalendarDays,
   ChevronDown,
@@ -26,9 +25,17 @@ type Countdown = {
   seconds: number;
 };
 
+const springEase: [number, number, number, number] = [0.25, 0.46, 0.45, 0.94];
+const luxuryEase: [number, number, number, number] = [0.22, 1, 0.36, 1];
+
 const fadeUp = {
   hidden: { opacity: 0, y: 36 },
-  visible: { opacity: 1, y: 0 }
+  visible: { opacity: 1, y: 0, transition: { ease: springEase, duration: 0.7 } }
+};
+
+const cardReveal = {
+  hidden: { opacity: 0, y: 34, scale: 0.97 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { ease: springEase, duration: 0.62 } }
 };
 
 function getCountdown(): Countdown {
@@ -144,16 +151,50 @@ function ExperienceParticles({ type }: { type: ExperienceItem["particleType"] })
 function ExperiencePrism() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const sectionRef = useRef<HTMLElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const triggerRefs = useRef<Map<string, HTMLElement>>(new Map());
 
-  const closeOverlay = useCallback(() => setActiveId(null), []);
+  const closeOverlay = useCallback(() => {
+    setActiveId(null);
+    const trigger = activeId ? triggerRefs.current.get(activeId) : null;
+    if (trigger) {
+      trigger.focus();
+    }
+  }, [activeId]);
+
+  const handleCardKeyDown = useCallback((item: ExperienceItem, e: React.KeyboardEvent) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setActiveId(item.id);
+    }
+  }, []);
 
   useEffect(() => {
     if (activeId) {
       document.body.style.overflow = "hidden";
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === "Escape") closeOverlay();
+      };
+      window.addEventListener("keydown", handleEscape);
+      return () => {
+        document.body.style.overflow = "";
+        window.removeEventListener("keydown", handleEscape);
+      };
     } else {
       document.body.style.overflow = "";
     }
-    return () => { document.body.style.overflow = ""; };
+  }, [activeId, closeOverlay]);
+
+  useEffect(() => {
+    if (activeId && overlayRef.current) {
+      const focusable = overlayRef.current.querySelector<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      if (focusable) {
+        const timer = setTimeout(() => focusable.focus(), 50);
+        return () => clearTimeout(timer);
+      }
+    }
   }, [activeId]);
 
   const activeItem = experiences.find((e) => e.id === activeId);
@@ -163,12 +204,12 @@ function ExperiencePrism() {
     visible: (i: number) => ({
       opacity: 1,
       y: 0,
-      transition: { delay: i * 0.09, duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] as const }
+      transition: { delay: i * 0.09, duration: 0.7, ease: springEase }
     })
   };
 
   return (
-    <section className="experience-prism" ref={sectionRef} id="experiences">
+    <section className="experience-prism" ref={sectionRef} id="experiences" aria-label="Experiences">
       <motion.div
         className="prism-header"
         initial="hidden"
@@ -179,7 +220,7 @@ function ExperiencePrism() {
           className="prism-kicker"
           variants={{
             hidden: { opacity: 0, y: 18 },
-            visible: { opacity: 1, y: 0, transition: { duration: 0.8 } }
+            visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: luxuryEase } }
           }}
         >
           By Invitation Only
@@ -188,7 +229,7 @@ function ExperiencePrism() {
           className="prism-title"
           variants={{
             hidden: { opacity: 0, y: 24 },
-            visible: { opacity: 1, y: 0, transition: { delay: 0.15, duration: 0.9 } }
+            visible: { opacity: 1, y: 0, transition: { delay: 0.15, duration: 0.9, ease: luxuryEase } }
           }}
         >
           An Invitation to Experience<br />
@@ -198,14 +239,14 @@ function ExperiencePrism() {
           className="prism-subtitle"
           variants={{
             hidden: { opacity: 0, y: 16 },
-            visible: { opacity: 1, y: 0, transition: { delay: 0.3, duration: 0.8 } }
+            visible: { opacity: 1, y: 0, transition: { delay: 0.3, duration: 0.8, ease: luxuryEase } }
           }}
         >
           Six facets. One vision. Scroll through the AURE experience.
         </motion.p>
       </motion.div>
 
-      <div className="prism-grid">
+      <div className="prism-grid" role="list">
         {experiences.map((item, index) => (
           <motion.article
             key={item.id}
@@ -215,17 +256,24 @@ function ExperiencePrism() {
             whileInView="visible"
             viewport={{ once: true, margin: "-80px" }}
             variants={fadeSlideUp}
+            tabIndex={0}
+            role="listitem"
+            aria-label={`${item.subtitle}: ${item.title}. ${item.description}`}
+            ref={(el) => { if (el) triggerRefs.current.set(item.id, el); }}
             onMouseEnter={() => setActiveId(item.id)}
             onMouseLeave={() => setActiveId(null)}
+            onFocus={() => setActiveId(item.id)}
+            onBlur={() => setActiveId(null)}
+            onKeyDown={(e) => handleCardKeyDown(item, e)}
           >
             <div className="prism-card-inner">
               <ExperienceParticles type={item.particleType} />
               <div className="prism-card-number">{item.number}</div>
-              <span className="prism-card-divider" />
+              <span className="prism-card-divider" aria-hidden="true" />
               <p className="prism-card-subtitle">{item.subtitle}</p>
               <h3 className="prism-card-title">{item.title}</h3>
               <p className="prism-card-desc">{item.description}</p>
-              <div className="prism-card-glint" />
+              <div className="prism-card-glint" aria-hidden="true" />
             </div>
           </motion.article>
         ))}
@@ -234,29 +282,33 @@ function ExperiencePrism() {
       {activeItem && (
         <motion.div
           className="prism-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Experience details: ${activeItem.title}`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.4 }}
+          transition={{ duration: 0.5, ease: luxuryEase }}
           onClick={closeOverlay}
+          ref={overlayRef}
         >
           <motion.div
             className="prism-overlay-content"
             initial={{ opacity: 0, scale: 0.92, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+            transition={{ duration: 0.5, ease: springEase }}
             onClick={(e) => e.stopPropagation()}
           >
-            <button className="prism-overlay-close" type="button" onClick={closeOverlay} aria-label="Close">
+            <button className="prism-overlay-close" type="button" onClick={closeOverlay} aria-label="Close experience details">
               <X size={20} />
             </button>
             <div className="prism-overlay-body">
               <ExperienceParticles type={activeItem.particleType} />
               <span className="prism-overlay-number">{activeItem.number}</span>
-              <span className="prism-card-divider" />
+              <span className="prism-card-divider" aria-hidden="true" />
               <p className="prism-overlay-subtitle">{activeItem.subtitle}</p>
-              <h2 className="prism-overlay-title">{activeItem.title}</h2>
+              <h3 className="prism-overlay-title">{activeItem.title}</h3>
               <p className="prism-overlay-desc">{activeItem.description}</p>
               <span className="prism-overlay-footnote">Part of the AURE STUDIO launch experience</span>
             </div>
@@ -333,24 +385,42 @@ function AudioControl({ entered }: { entered: boolean }) {
 }
 
 function Splash({ onEnter }: { onEnter: () => void }) {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter" || e.key === " ") {
+        if (buttonRef.current === document.activeElement || document.activeElement?.closest(".splash")) {
+          onEnter();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    buttonRef.current?.focus();
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onEnter]);
+
   return (
     <motion.div
       className="splash"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Welcome to AURE STUDIO launch invitation"
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0, scale: 1.04, filter: "blur(10px)" }}
-      transition={{ duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
+      exit={{ opacity: 0, scale: 0.96 }}
+      transition={{ duration: 0.9, ease: luxuryEase }}
     >
       <AnimatedParticles />
-      <motion.div className="splash-inner" initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 1.15 }}>
-        <motion.div className="logo-reveal" initial={{ clipPath: "inset(0 100% 0 0)" }} animate={{ clipPath: "inset(0 0% 0 0)" }} transition={{ duration: 1.4, ease: "easeInOut" }}>
+      <motion.div className="splash-inner" initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 1.15, ease: luxuryEase }}>
+        <motion.div className="logo-reveal" initial={{ clipPath: "inset(0 100% 0 0)" }} animate={{ clipPath: "inset(0 0% 0 0)" }} transition={{ duration: 1.4, ease: luxuryEase }}>
           <Image src={siteConfig.assets.logo} alt={`${siteConfig.brand.name} logo`} width={1240} height={380} priority />
         </motion.div>
-        <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.75, duration: 0.8 }}>
+        <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.75, duration: 0.8, ease: luxuryEase }}>
           {siteConfig.brand.tagline}
         </motion.p>
-        <motion.button className="enter-button" type="button" onClick={onEnter} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.25, duration: 0.8 }}>
+        <motion.button className="enter-button" type="button" onClick={onEnter} ref={buttonRef} aria-label={`Enter the ${siteConfig.brand.name} invitation experience`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.25, duration: 0.8, ease: luxuryEase }} whileHover={{ y: -3 }} whileTap={{ scale: 0.97 }}>
           Tap To Enter
-          <ChevronDown size={18} />
+          <ChevronDown size={18} aria-hidden="true" />
         </motion.button>
       </motion.div>
     </motion.div>
@@ -363,7 +433,7 @@ function Hero() {
   const copyY = useTransform(scrollYProgress, [0, 1], ["0%", "10%"]);
 
   return (
-    <section className="hero" ref={heroRef}>
+    <section className="hero" ref={heroRef} aria-label="Hero">
       <AnimatedParticles />
       <motion.div className="hero-copy" style={{ y: copyY }} initial="hidden" animate="visible" transition={{ staggerChildren: 0.14 }}>
         <motion.div variants={fadeUp} className="hero-mark">
@@ -376,8 +446,8 @@ function Hero() {
           <span>{siteConfig.event.dayLabel}</span>
           <span>{siteConfig.event.timeLabel}</span>
         </motion.div>
-        <motion.a variants={fadeUp} href="#details" className="primary-cta">
-          <Sparkles size={18} />
+        <motion.a variants={fadeUp} href="#details" className="primary-cta" aria-label="Scroll to event details" whileHover={{ y: -3 }} whileTap={{ scale: 0.97 }}>
+          <Sparkles size={18} aria-hidden="true" />
         </motion.a>
       </motion.div>
     </section>
@@ -395,9 +465,9 @@ function SectionHeader({ kicker, title }: { kicker: string; title: string }) {
 
 function Story() {
   return (
-    <section className="story section-shell" id="story">
+    <section className="story section-shell" id="story" aria-label="Story">
       <SectionHeader kicker={siteConfig.story.kicker} title={siteConfig.story.title} />
-      <motion.p className="story-body" initial="hidden" whileInView="visible" viewport={{ once: true }} transition={{ delay: 0.12, duration: 0.8 }} variants={fadeUp}>
+      <motion.p className="story-body" initial="hidden" whileInView="visible" viewport={{ once: true }} transition={{ delay: 0.12, duration: 0.8, ease: springEase }} variants={fadeUp}>
         {siteConfig.story.body}
       </motion.p>
     </section>
@@ -406,17 +476,20 @@ function Story() {
 
 function Highlights() {
   return (
-    <section className="highlights section-shell" id="experience">
+    <section className="highlights section-shell" id="experience" aria-label="Highlights">
       <SectionHeader kicker={siteConfig.brand.theme} title="An invitation into the AURE experience." />
-      <div className="highlight-grid">
+      <div className="highlight-grid" role="list">
         {siteConfig.highlights.map((item, index) => (
           <motion.article
             className="highlight-card"
             key={item.title}
-            initial={{ opacity: 0, y: 34, scale: 0.97 }}
-            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            variants={cardReveal}
+            initial="hidden"
+            whileInView="visible"
             viewport={{ once: true, margin: "-60px" }}
-            transition={{ delay: index * 0.07, duration: 0.62 }}
+            transition={{ delay: index * 0.07 }}
+            whileHover={{ y: -6, transition: { duration: 0.3, ease: springEase } }}
+            role="listitem"
           >
             <span>{String(index + 1).padStart(2, "0")}</span>
             <h3>{item.title}</h3>
@@ -446,12 +519,12 @@ function CountdownSection() {
   }, []);
 
   return (
-    <section className="countdown-band" id="countdown">
+    <section className="countdown-band" id="countdown" aria-label="Event countdown">
       <SectionHeader kicker="Live countdown" title={`${siteConfig.event.dateLabel} at 4:00 PM IST`} />
-      <div className="countdown-grid" aria-live="polite">
+      <div className="countdown-grid" aria-live="polite" aria-label="Time remaining until event">
         {countdownEntries.map(([label, value]) => (
-          <motion.div key={label} className="count-box" initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <strong suppressHydrationWarning>{value === null ? "--" : String(value).padStart(2, "0")}</strong>
+          <motion.div key={label} className="count-box" initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.7, ease: springEase }}>
+            <strong suppressHydrationWarning aria-label={`${label}: ${value === null ? "--" : value}`}>{value === null ? "--" : String(value).padStart(2, "0")}</strong>
             <span>{label}</span>
           </motion.div>
         ))}
@@ -468,12 +541,12 @@ function EventDetails() {
   ];
 
   return (
-    <section className="details section-shell" id="details">
+    <section className="details section-shell" id="details" aria-label="Event details">
       <SectionHeader kicker="Event details" title="An intimate Sunday high tea at AURE STUDIO." />
-      <div className="detail-grid">
+      <div className="detail-grid" role="list">
         {detailItems.map(({ icon: Icon, label, value }) => (
-          <motion.article key={label} className="detail-item" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
-            <Icon size={22} />
+          <motion.article key={label} className="detail-item" role="listitem" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeUp}>
+            <Icon size={22} aria-hidden="true" />
             <span>{label}</span>
             <p>{value}</p>
           </motion.article>
@@ -494,74 +567,83 @@ function Location() {
   };
 
   return (
-    <section className="location section-shell" id="location">
+    <section className="location section-shell" id="location" aria-label="Location">
       <SectionHeader kicker="Location" title="Arrive at the first floor, beside Metro Pillar 544." />
       <div className="map-wrap">
         <iframe title="AURE STUDIO location map" src={siteConfig.event.venue.embedUrl} loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
       </div>
-      <div className="action-row">
-        <a href={siteConfig.event.venue.mapsUrl} target="_blank" rel="noreferrer">
-          <MapPin size={18} />
+      <motion.div className="action-row" role="group" aria-label="Location actions" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-40px" }} variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.08 } } }}>
+        <motion.a variants={fadeUp} href={siteConfig.event.venue.mapsUrl} target="_blank" rel="noopener noreferrer" whileHover={{ y: -3 }} whileTap={{ scale: 0.97 }}>
+          <MapPin size={18} aria-hidden="true" />
           Open in Google Maps
-        </a>
-        <a href={siteConfig.event.venue.directionsUrl} target="_blank" rel="noreferrer">
-          <Navigation size={18} />
+        </motion.a>
+        <motion.a variants={fadeUp} href={siteConfig.event.venue.directionsUrl} target="_blank" rel="noopener noreferrer" whileHover={{ y: -3 }} whileTap={{ scale: 0.97 }}>
+          <Navigation size={18} aria-hidden="true" />
           Get Directions
-        </a>
-        <button type="button" onClick={shareLocation}>
-          <Share2 size={18} />
+        </motion.a>
+        <motion.button variants={fadeUp} type="button" onClick={shareLocation} whileHover={{ y: -3 }} whileTap={{ scale: 0.97 }}>
+          <Share2 size={18} aria-hidden="true" />
           Share Location
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
     </section>
   );
 }
 
 function SocialFooter() {
   return (
-    <footer className="social-footer">
-      <Image src={siteConfig.assets.wordmark} alt={siteConfig.brand.name} width={360} height={40} />
-      <p>{siteConfig.brand.tagline} — {siteConfig.event.dateLabel}</p>
-      <small>&copy; {new Date().getFullYear()} {siteConfig.brand.name}. All rights reserved.</small>
-    </footer>
+    <motion.footer className="social-footer" aria-label="Site footer" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-40px" }} variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}>
+      <motion.div variants={fadeUp}>
+        <Image src={siteConfig.assets.wordmark} alt={`${siteConfig.brand.name} wordmark`} width={360} height={40} />
+      </motion.div>
+      <motion.p variants={fadeUp}>{siteConfig.brand.tagline} — {siteConfig.event.dateLabel}</motion.p>
+      <motion.small variants={fadeUp}>&copy; {new Date().getFullYear()} {siteConfig.brand.name}. All rights reserved.</motion.small>
+    </motion.footer>
   );
 }
 
 export default function Home() {
   const [entered, setEntered] = useState(false);
-
-  useEffect(() => {
-    gsap.to(".ambient-glow", {
-      opacity: 0.9,
-      scale: 1.08,
-      duration: 5,
-      repeat: -1,
-      yoyo: true,
-      ease: "sine.inOut"
-    });
-  }, []);
+  const prefersReduced = useReducedMotion();
 
   return (
-    <main>
-      <div className="ambient-glow" aria-hidden="true" />
-      {!entered && <Splash onEnter={() => setEntered(true)} />}
-      <AudioControl entered={entered} />
-      <Hero />
-      <Story />
-      <Highlights />
-      <ExperiencePrism />
-      <CountdownSection />
-      <EventDetails />
-      <Location />
-      <SocialFooter />
-      <button
-        className="pause-motion"
-        type="button"
-        aria-label="Pause decorative motion"
-        onClick={() => document.documentElement.classList.toggle("reduce-motion")}
-      >
-        <Pause size={16} />
-      </button>
-    </main>
+    <MotionConfig reducedMotion="user">
+      <a href="#story" className="skip-link">
+        Skip to main content
+      </a>
+      <main>
+        <motion.div
+          className="ambient-glow"
+          aria-hidden="true"
+          animate={prefersReduced ? {} : {
+            opacity: [0.5, 0.9, 0.5],
+            scale: [1, 1.08, 1]
+          }}
+          transition={{
+            duration: 6,
+            repeat: Infinity,
+            ease: luxuryEase
+          }}
+        />
+        {!entered && <Splash onEnter={() => setEntered(true)} />}
+        <AudioControl entered={entered} />
+        <Hero />
+        <Story />
+        <Highlights />
+        <ExperiencePrism />
+        <CountdownSection />
+        <EventDetails />
+        <Location />
+        <SocialFooter />
+        <button
+          className="pause-motion"
+          type="button"
+          aria-label="Pause decorative motion"
+          onClick={() => document.documentElement.classList.toggle("reduce-motion")}
+        >
+          <Pause size={16} aria-hidden="true" />
+        </button>
+      </main>
+    </MotionConfig>
   );
 }
