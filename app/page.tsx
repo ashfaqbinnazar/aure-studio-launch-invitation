@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import gsap from "gsap";
 import {
@@ -11,11 +11,11 @@ import {
   MapPin,
   Navigation,
   Pause,
-  Play,
   Share2,
   Sparkles,
   Volume2,
-  VolumeX
+  VolumeX,
+  X
 } from "lucide-react";
 import { siteConfig } from "@/lib/siteConfig";
 
@@ -40,6 +40,231 @@ function getCountdown(): Countdown {
     minutes: Math.floor((diff / 60000) % 60),
     seconds: Math.floor((diff / 1000) % 60)
   };
+}
+
+type ExperienceItem = {
+  id: string;
+  number: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  particleType: "gold-dust" | "steam" | "wave" | "sheen" | "connection" | "holographic";
+};
+
+const experiences: ExperienceItem[] = [
+  {
+    id: "launch",
+    number: "01",
+    title: "Grand Unveiling",
+    subtitle: "Launch Event",
+    description:
+      "Be among the first to step inside AURE STUDIO. An evening of quiet elegance, discovery, and introduction to a new era of intelligent beauty.",
+    particleType: "gold-dust"
+  },
+  {
+    id: "high-tea",
+    number: "02",
+    title: "Exclusive High Tea",
+    subtitle: "Culinary Experience",
+    description:
+      "A refined afternoon with curated teas, artisanal patisserie, and warm hospitality. Every detail designed for intimate conversation and quiet celebration.",
+    particleType: "steam"
+  },
+  {
+    id: "wellness",
+    number: "03",
+    title: "Korean Scalp & Wellness Rituals",
+    subtitle: "Restorative Journey",
+    description:
+      "Restorative rituals inspired by Korean wellness traditions. Expert scalp care, holistic treatments, and sensory calm in a space designed for deep renewal.",
+    particleType: "wave"
+  },
+  {
+    id: "beauty",
+    number: "04",
+    title: "Luxury Hair & Beauty Services",
+    subtitle: "Precision & Care",
+    description:
+      "Precision-led styling, finishing, and beauty services in an elevated studio. Every treatment tailored, every detail considered for a transformative result.",
+    particleType: "sheen"
+  },
+  {
+    id: "hospitality",
+    number: "05",
+    title: "Signature Hospitality",
+    subtitle: "Warm Welcome",
+    description:
+      "Warm, elegant hosting from arrival to farewell. Every guest welcomed into a space designed for comfort, privacy, and quiet, considered luxury.",
+    particleType: "connection"
+  },
+  {
+    id: "ai-mirror",
+    number: "06",
+    title: "AI Mirror Consultation",
+    subtitle: "Intelligent Diagnostics",
+    description:
+      "Step before the AI Mirror for intelligent diagnostics and visual guidance. Technology meets intuition for grooming decisions that are deeply personal and precisely informed.",
+    particleType: "holographic"
+  }
+];
+
+const particleConfig: Record<ExperienceItem["particleType"], { count: number; color: string; size: string; duration: string }> = {
+  "gold-dust": { count: 12, color: "rgba(226, 189, 134, 0.7)", size: "3px", duration: "6s" },
+  steam: { count: 10, color: "rgba(244, 242, 242, 0.25)", size: "6px", duration: "9s" },
+  wave: { count: 10, color: "rgba(160, 190, 160, 0.3)", size: "4px", duration: "7s" },
+  sheen: { count: 12, color: "rgba(244, 242, 242, 0.5)", size: "3px", duration: "5s" },
+  connection: { count: 10, color: "rgba(196, 154, 110, 0.35)", size: "4px", duration: "8s" },
+  holographic: { count: 14, color: "rgba(180, 200, 230, 0.4)", size: "3px", duration: "4s" }
+};
+
+function ExperienceParticles({ type }: { type: ExperienceItem["particleType"] }) {
+  const config = particleConfig[type];
+  return (
+    <div className="exp-particles" aria-hidden="true">
+      {Array.from({ length: config.count }).map((_, i) => (
+        <span
+          key={i}
+          style={{
+            left: `${(i * 17 + 8) % 100}%`,
+            width: config.size,
+            height: config.size,
+            background: config.color,
+            animationDuration: config.duration,
+            animationDelay: `${i * -0.6}s`,
+            boxShadow: type === "gold-dust" || type === "sheen" || type === "holographic"
+              ? `0 0 6px ${config.color}`
+              : "none"
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ExperiencePrism() {
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  const closeOverlay = useCallback(() => setActiveId(null), []);
+
+  useEffect(() => {
+    if (activeId) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [activeId]);
+
+  const activeItem = experiences.find((e) => e.id === activeId);
+
+  const fadeSlideUp = {
+    hidden: { opacity: 0, y: 50 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.09, duration: 0.7, ease: [0.25, 0.46, 0.45, 0.94] as const }
+    })
+  };
+
+  return (
+    <section className="experience-prism" ref={sectionRef} id="experiences">
+      <motion.div
+        className="prism-header"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+      >
+        <motion.p
+          className="prism-kicker"
+          variants={{
+            hidden: { opacity: 0, y: 18 },
+            visible: { opacity: 1, y: 0, transition: { duration: 0.8 } }
+          }}
+        >
+          By Invitation Only
+        </motion.p>
+        <motion.h2
+          className="prism-title"
+          variants={{
+            hidden: { opacity: 0, y: 24 },
+            visible: { opacity: 1, y: 0, transition: { delay: 0.15, duration: 0.9 } }
+          }}
+        >
+          An Invitation to Experience<br />
+          <span className="prism-emphasis">A New Era of Beauty</span>
+        </motion.h2>
+        <motion.p
+          className="prism-subtitle"
+          variants={{
+            hidden: { opacity: 0, y: 16 },
+            visible: { opacity: 1, y: 0, transition: { delay: 0.3, duration: 0.8 } }
+          }}
+        >
+          Six facets. One vision. Scroll through the AURE experience.
+        </motion.p>
+      </motion.div>
+
+      <div className="prism-grid">
+        {experiences.map((item, index) => (
+          <motion.article
+            key={item.id}
+            className={`prism-card ${activeId === item.id ? "is-active" : ""}`}
+            custom={index}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-80px" }}
+            variants={fadeSlideUp}
+            onMouseEnter={() => setActiveId(item.id)}
+            onMouseLeave={() => setActiveId(null)}
+          >
+            <div className="prism-card-inner">
+              <ExperienceParticles type={item.particleType} />
+              <div className="prism-card-number">{item.number}</div>
+              <span className="prism-card-divider" />
+              <p className="prism-card-subtitle">{item.subtitle}</p>
+              <h3 className="prism-card-title">{item.title}</h3>
+              <p className="prism-card-desc">{item.description}</p>
+              <div className="prism-card-glint" />
+            </div>
+          </motion.article>
+        ))}
+      </div>
+
+      {activeItem && (
+        <motion.div
+          className="prism-overlay"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.4 }}
+          onClick={closeOverlay}
+        >
+          <motion.div
+            className="prism-overlay-content"
+            initial={{ opacity: 0, scale: 0.92, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button className="prism-overlay-close" type="button" onClick={closeOverlay} aria-label="Close">
+              <X size={20} />
+            </button>
+            <div className="prism-overlay-body">
+              <ExperienceParticles type={activeItem.particleType} />
+              <span className="prism-overlay-number">{activeItem.number}</span>
+              <span className="prism-card-divider" />
+              <p className="prism-overlay-subtitle">{activeItem.subtitle}</p>
+              <h2 className="prism-overlay-title">{activeItem.title}</h2>
+              <p className="prism-overlay-desc">{activeItem.description}</p>
+              <span className="prism-overlay-footnote">Part of the AURE STUDIO launch experience</span>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </section>
+  );
 }
 
 function AnimatedParticles() {
@@ -203,48 +428,6 @@ function Highlights() {
   );
 }
 
-function DigitalInvitation() {
-  const [revealed, setRevealed] = useState(false);
-  const petals = useMemo(() => Array.from({ length: 18 }), []);
-
-  return (
-    <section className="invitation section-shell" id="invitation">
-      <SectionHeader kicker="Interactive invitation" title="A golden reveal for your private launch entry." />
-      <motion.div className={`invite-card ${revealed ? "is-revealed" : ""}`} initial={{ opacity: 0, y: 38 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }}>
-        <div className="invite-art">
-          <Image src={siteConfig.assets.invitationArtwork} alt="AURE invitation artwork" fill sizes="(max-width: 900px) 100vw, 50vw" />
-        </div>
-        <div className="invite-content">
-          <Image src={siteConfig.assets.mark} alt="" width={92} height={92} />
-          <p>{siteConfig.event.name}</p>
-          <h2>{revealed ? siteConfig.invitation.revealedTitle : siteConfig.invitation.preReveal}</h2>
-          <span>{revealed ? siteConfig.invitation.revealedBody : "Touch the seal to open the ceremonial invitation."}</span>
-          <button type="button" onClick={() => setRevealed(true)} aria-label="Break the golden seal">
-            {revealed ? <Sparkles size={18} /> : <Play size={18} />}
-          </button>
-        </div>
-        {revealed && (
-          <div className="petals" aria-hidden="true">
-            {petals.map((_, index) => (
-              <i
-                key={index}
-                style={
-                  {
-                    "--tx": `${Math.cos(index * 1.9) * 18}rem`,
-                    "--ty": `${Math.sin(index * 1.9) * 12}rem`,
-                    "--rot": `${index * 31}deg`,
-                    "--delay": `${index * 0.08}s`
-                  } as React.CSSProperties
-                }
-              />
-            ))}
-          </div>
-        )}
-      </motion.div>
-    </section>
-  );
-}
-
 function CountdownSection() {
   const [countdown, setCountdown] = useState<Countdown | null>(null);
   const countdownEntries: Array<[keyof Countdown, number | null]> = countdown
@@ -366,7 +549,7 @@ export default function Home() {
       <Hero />
       <Story />
       <Highlights />
-      <DigitalInvitation />
+      <ExperiencePrism />
       <CountdownSection />
       <EventDetails />
       <Location />
