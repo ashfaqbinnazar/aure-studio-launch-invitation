@@ -1,8 +1,3 @@
-type GalleryImage = {
-  src: string;
-  alt: string;
-};
-
 export const siteConfig = {
   brand: {
     name: "AURE STUDIO",
@@ -85,29 +80,9 @@ export const siteConfig = {
     wordmark: "/assets/brand/aure-wordmark.png",
     mark: "/assets/brand/aure-mark.png",
     ogImage: "/assets/brand/og-aure-launch.jpg",
-    whatsappPreviewImage: "/assets/brand/og-aure-launch.jpg",
-    facebookPreviewImage: "/assets/brand/og-aure-launch.jpg",
-    instagramShareImage: "/assets/brand/social-square.jpg",
     audio: "/audio/ambient.mp3",
     hero: "/assets/brand/hero-aure-invitation.jpg",
-    invitationArtwork: "/assets/gallery/gallery-15.jpg",
-    gallery: [
-  { src: "/assets/gallery/gallery-01.jpg", alt: "AURE STUDIO luxury interior" },
-  { src: "/assets/gallery/gallery-02.jpg", alt: "AURE STUDIO grooming station" },
-  { src: "/assets/gallery/gallery-03.jpg", alt: "AURE STUDIO ambiance" },
-  { src: "/assets/gallery/gallery-04.jpg", alt: "AURE STUDIO service area" },
-  { src: "/assets/gallery/gallery-05.jpg", alt: "AURE STUDIO consultation space" },
-  { src: "/assets/gallery/gallery-06.jpg", alt: "AURE STUDIO wellness area" },
-  { src: "/assets/gallery/gallery-07.jpg", alt: "AURE STUDIO detail shot" },
-  { src: "/assets/gallery/gallery-08.jpg", alt: "AURE STUDIO lounge" },
-  { src: "/assets/gallery/gallery-09.jpg", alt: "AURE STUDIO entrance" },
-  { src: "/assets/gallery/gallery-10.jpg", alt: "AURE STUDIO styling area" },
-  { src: "/assets/gallery/gallery-11.jpg", alt: "AURE STUDIO decor detail" },
-  { src: "/assets/gallery/gallery-12.jpg", alt: "AURE STUDIO lighting detail" },
-  { src: "/assets/gallery/gallery-13.jpg", alt: "AURE STUDIO product display" },
-  { src: "/assets/gallery/gallery-14.jpg", alt: "AURE STUDIO waiting area" },
-  { src: "/assets/gallery/gallery-15.jpg", alt: "AURE STUDIO invitation artwork" }
-] as GalleryImage[]
+
   },
   seo: {
     siteUrl: "https://aure-invitation.vercel.app",
@@ -125,5 +100,3 @@ export const siteConfig = {
     ]
   }
 } as const;
-
-export type SiteConfig = typeof siteConfig;

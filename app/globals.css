@@ -248,6 +248,7 @@ img:not([data-nimg="fill"]) {
 .logo-reveal {
   position: relative;
   overflow: hidden;
+  width: min(80%, 48rem);
 }
 
 .logo-reveal::after {
@@ -421,7 +422,7 @@ img:not([data-nimg="fill"]) {
 }
 
 .hero-mark {
-  width: min(80vw, 48rem);
+  width: min(56vw, 33.6rem);
   filter: drop-shadow(0 1rem 2rem rgba(0, 0, 0, 0.3));
 }
 
@@ -1206,7 +1207,7 @@ img:not([data-nimg="fill"]) {
   }
 
   .hero-mark {
-    width: min(64vw, 40rem);
+    width: min(44.8vw, 28rem);
   }
 
   .section-header {
@@ -1427,7 +1428,7 @@ img:not([data-nimg="fill"]) {
   }
 
   .hero-mark {
-    width: min(70vw, 48rem);
+    width: min(49vw, 33.6rem);
   }
 
   .particles span {
@@ -1563,7 +1564,7 @@ img:not([data-nimg="fill"]) {
   }
 
   .hero-mark {
-    width: min(60vw, 52rem);
+    width: min(42vw, 36.4rem);
   }
 
   .hero-copy {
@@ -1613,7 +1614,7 @@ img:not([data-nimg="fill"]) {
   }
 
   .hero-mark {
-    width: min(50vw, 68rem);
+    width: min(35vw, 47.6rem);
   }
 
   .highlight-card,
@@ -1654,7 +1655,7 @@ img:not([data-nimg="fill"]) {
   }
 
   .hero-mark {
-    width: min(48vw, 72rem);
+    width: min(33.6vw, 50.4rem);
   }
 
   .highlight-grid,
