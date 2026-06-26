@@ -880,7 +880,7 @@ img:not([data-nimg="fill"]) {
   font-size: clamp(2.2rem, 5.5vw, 4.8rem);
   line-height: 1.04;
   letter-spacing: 0;
-  color: var(--ivory);
+  color: var(--ink);
   text-wrap: balance;
 }
 
@@ -895,7 +895,7 @@ img:not([data-nimg="fill"]) {
   font-weight: 400;
   font-size: clamp(0.95rem, 1.4vw, 1.125rem);
   letter-spacing: 0.06em;
-  color: rgba(244, 242, 242, 0.55);
+  color: var(--ink);
 }
 
 .prism-grid {
