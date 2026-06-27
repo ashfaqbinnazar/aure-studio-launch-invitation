@@ -17,6 +17,7 @@ import {
   X
 } from "lucide-react";
 import { siteConfig } from "@/lib/siteConfig";
+import { type RSVPData, type RSVPErrors, buildWhatsAppMessage, openWhatsApp, validateForm } from "@/lib/rsvp";
 
 type Countdown = {
   days: number;
@@ -602,6 +603,331 @@ function SocialFooter() {
   );
 }
 
+function GuestCounter({
+  value,
+  onChange,
+  min = 1,
+  max = 10
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  min?: number;
+  max?: number;
+}) {
+  const decrement = useCallback(() => {
+    if (value > min) onChange(value - 1);
+  }, [value, min, onChange]);
+
+  const increment = useCallback(() => {
+    if (value < max) onChange(value + 1);
+  }, [value, max, onChange]);
+
+  return (
+    <div className="rsvp-input-group">
+      <label htmlFor="rsvp-counter">Number of Guests</label>
+      <div className="rsvp-counter" id="rsvp-counter" role="group" aria-label="Number of guests selector">
+        <button
+          className="rsvp-counter-btn"
+          type="button"
+          onClick={decrement}
+          disabled={value <= min}
+          aria-label={`Decrease guests. Current: ${value}`}
+        >
+          <motion.span
+            key={value}
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.15 }}
+          >
+            &minus;
+          </motion.span>
+        </button>
+        <span className="rsvp-counter-value" aria-live="polite" aria-label={`${value} guest${value !== 1 ? "s" : ""}`}>
+          {value}
+        </span>
+        <button
+          className="rsvp-counter-btn"
+          type="button"
+          onClick={increment}
+          disabled={value >= max}
+          aria-label={`Increase guests. Current: ${value}`}
+        >
+          <motion.span
+            key={value}
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.15 }}
+          >
+            +
+          </motion.span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function RSVPSuccess({ onReset }: { onReset: () => void }) {
+  return (
+    <motion.div
+      className="rsvp-success"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, ease: springEase }}
+    >
+      <motion.div
+        className="rsvp-success-icon"
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ delay: 0.2, duration: 0.5, ease: springEase }}
+      >
+        <motion.span
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+        >
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </motion.span>
+      </motion.div>
+      <motion.h3
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35, duration: 0.6, ease: luxuryEase }}
+      >
+        Thank You
+      </motion.h3>
+      <motion.p
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.6, ease: luxuryEase }}
+      >
+        Your RSVP is ready to be sent via WhatsApp.
+        <br />
+        We look forward to welcoming you.
+      </motion.p>
+      <motion.button
+        className="primary-cta"
+        type="button"
+        onClick={onReset}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.65, duration: 0.6, ease: springEase }}
+        whileHover={{ y: -3 }}
+        whileTap={{ scale: 0.97 }}
+      >
+        Submit Another Response
+      </motion.button>
+    </motion.div>
+  );
+}
+
+function RSVPConfirmation() {
+  const [guestName, setGuestName] = useState("");
+  const [mobileNumber, setMobileNumber] = useState("");
+  const [guestCount, setGuestCount] = useState(1);
+  const [errors, setErrors] = useState<RSVPErrors>({});
+  const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const nameRef = useRef<HTMLInputElement>(null);
+  const mobileRef = useRef<HTMLInputElement>(null);
+  const successRef = useRef<HTMLDivElement>(null);
+
+  const handleNameChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setGuestName(val);
+    if (touched.guestName) {
+      const err = validateForm({ guestName: val, mobileNumber, guestCount });
+      setErrors((prev) => ({ ...prev, guestName: err.guestName }));
+    }
+  }, [mobileNumber, guestCount, touched.guestName]);
+
+  const handleMobileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, "");
+    setMobileNumber(val);
+    if (touched.mobileNumber) {
+      const err = validateForm({ guestName, mobileNumber: val, guestCount });
+      setErrors((prev) => ({ ...prev, mobileNumber: err.mobileNumber }));
+    }
+  }, [guestName, guestCount, touched.mobileNumber]);
+
+  const handleNameBlur = useCallback(() => {
+    setTouched((prev) => ({ ...prev, guestName: true }));
+    const err = validateForm({ guestName: guestName.trim(), mobileNumber, guestCount });
+    setErrors((prev) => ({ ...prev, guestName: err.guestName }));
+  }, [guestName, mobileNumber, guestCount]);
+
+  const handleMobileBlur = useCallback(() => {
+    setTouched((prev) => ({ ...prev, mobileNumber: true }));
+    const err = validateForm({ guestName, mobileNumber, guestCount });
+    setErrors((prev) => ({ ...prev, mobileNumber: err.mobileNumber }));
+  }, [guestName, mobileNumber, guestCount]);
+
+  const handleGuestCountChange = useCallback((val: number) => {
+    setGuestCount(val);
+  }, []);
+
+  const handleRipple = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    const btn = e.currentTarget;
+    const rect = btn.getBoundingClientRect();
+    const ripple = document.createElement("span");
+    const size = Math.max(rect.width, rect.height);
+    const x = e.clientX - rect.left - size / 2;
+    const y = e.clientY - rect.top - size / 2;
+    ripple.className = "ripple";
+    ripple.style.width = `${size}px`;
+    ripple.style.height = `${size}px`;
+    ripple.style.left = `${x}px`;
+    ripple.style.top = `${y}px`;
+    btn.appendChild(ripple);
+    ripple.addEventListener("animationend", () => ripple.remove());
+  }, []);
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+    e.preventDefault();
+    const data: RSVPData = {
+      guestName: guestName.trim(),
+      mobileNumber,
+      guestCount
+    };
+    const validationErrors = validateForm(data);
+    setErrors(validationErrors);
+    setTouched({ guestName: true, mobileNumber: true, guestCount: true });
+
+    if (Object.keys(validationErrors).length > 0) {
+      if (validationErrors.guestName) {
+        nameRef.current?.focus();
+      } else if (validationErrors.mobileNumber) {
+        mobileRef.current?.focus();
+      }
+      return;
+    }
+
+    setLoading(true);
+
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
+    const message = buildWhatsAppMessage(data);
+    openWhatsApp(message);
+    setLoading(false);
+    setSubmitted(true);
+  }, [guestName, mobileNumber, guestCount]);
+
+  const handleReset = useCallback(() => {
+    setGuestName("");
+    setMobileNumber("");
+    setGuestCount(1);
+    setErrors({});
+    setSubmitted(false);
+    setLoading(false);
+    setTouched({});
+    setTimeout(() => nameRef.current?.focus(), 100);
+  }, []);
+
+  useEffect(() => {
+    if (submitted && successRef.current) {
+      successRef.current.focus();
+    }
+  }, [submitted]);
+
+  return (
+    <section className="rsvp" id="rsvp" aria-label="RSVP Confirmation">
+      <SectionHeader kicker="RSVP" title="Confirm Your Attendance" />
+      <motion.p
+        className="rsvp-desc"
+        initial={{ opacity: 0, y: 16 }}
+        whileInView="visible"
+        viewport={{ once: true, margin: "-60px" }}
+        variants={{
+          hidden: { opacity: 0, y: 16 },
+          visible: { opacity: 1, y: 0, transition: { delay: 0.15, duration: 0.7, ease: luxuryEase } }
+        }}
+      >
+        Kindly confirm your presence for the Exclusive Launch High Tea. We look forward to celebrating with you.
+      </motion.p>
+      <motion.div
+        className="rsvp-card"
+        initial={{ opacity: 0, y: 30, scale: 0.98 }}
+        whileInView="visible"
+        viewport={{ once: true, margin: "-60px" }}
+        variants={{
+          hidden: { opacity: 0, y: 30, scale: 0.98 },
+          visible: { opacity: 1, y: 0, scale: 1, transition: { delay: 0.25, duration: 0.7, ease: springEase } }
+        }}
+      >
+        {!submitted ? (
+          <form className="rsvp-form" onSubmit={handleSubmit} noValidate aria-label="RSVP confirmation form">
+            <div className="rsvp-input-group">
+              <label htmlFor="rsvp-name">Guest Name</label>
+              <input
+                id="rsvp-name"
+                ref={nameRef}
+                className={`rsvp-input${errors.guestName && touched.guestName ? " has-error" : ""}`}
+                type="text"
+                placeholder="Enter your full name"
+                value={guestName}
+                onChange={handleNameChange}
+                onBlur={handleNameBlur}
+                autoComplete="name"
+                aria-required="true"
+                aria-invalid={!!(errors.guestName && touched.guestName)}
+                aria-describedby={errors.guestName && touched.guestName ? "rsvp-name-error" : undefined}
+                maxLength={60}
+              />
+              <span className="rsvp-error" id="rsvp-name-error" role="alert" aria-live="polite">
+                {touched.guestName && errors.guestName ? errors.guestName : ""}
+              </span>
+            </div>
+
+            <div className="rsvp-input-group">
+              <label htmlFor="rsvp-mobile">Mobile Number</label>
+              <input
+                id="rsvp-mobile"
+                ref={mobileRef}
+                className={`rsvp-input${errors.mobileNumber && touched.mobileNumber ? " has-error" : ""}`}
+                type="tel"
+                placeholder="Enter your mobile number"
+                value={mobileNumber}
+                onChange={handleMobileChange}
+                onBlur={handleMobileBlur}
+                autoComplete="tel"
+                inputMode="numeric"
+                aria-required="true"
+                aria-invalid={!!(errors.mobileNumber && touched.mobileNumber)}
+                aria-describedby={errors.mobileNumber && touched.mobileNumber ? "rsvp-mobile-error" : undefined}
+                maxLength={15}
+              />
+              <span className="rsvp-error" id="rsvp-mobile-error" role="alert" aria-live="polite">
+                {touched.mobileNumber && errors.mobileNumber ? errors.mobileNumber : ""}
+              </span>
+            </div>
+
+            <GuestCounter value={guestCount} onChange={handleGuestCountChange} min={1} max={10} />
+
+            <motion.button
+              className={`rsvp-submit${loading ? " is-loading" : ""}`}
+              type="submit"
+              disabled={loading}
+              onClick={handleRipple}
+              aria-busy={loading}
+              whileHover={loading ? {} : { scale: 1.01 }}
+              whileTap={loading ? {} : { scale: 0.98 }}
+            >
+              {loading && <span className="spinner" aria-hidden="true" />}
+              {loading ? "Sending..." : "Confirm Attendance"}
+            </motion.button>
+          </form>
+        ) : (
+          <div ref={successRef} tabIndex={-1}>
+            <RSVPSuccess onReset={handleReset} />
+          </div>
+        )}
+      </motion.div>
+    </section>
+  );
+}
+
 export default function Home() {
   const [entered, setEntered] = useState(false);
   const prefersReduced = useReducedMotion();
@@ -632,6 +958,7 @@ export default function Home() {
         <Highlights />
         <ExperiencePrism />
         <CountdownSection />
+        <RSVPConfirmation />
         <EventDetails />
         <Location />
         <SocialFooter />
