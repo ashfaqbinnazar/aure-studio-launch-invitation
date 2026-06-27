@@ -413,7 +413,7 @@ function Splash({ onEnter }: { onEnter: () => void }) {
       <AnimatedParticles />
       <motion.div className="splash-inner" initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 1.15, ease: luxuryEase }}>
         <motion.div className="logo-reveal" initial={{ clipPath: "inset(0 100% 0 0)" }} animate={{ clipPath: "inset(0 0% 0 0)" }} transition={{ duration: 1.4, ease: luxuryEase }}>
-          <Image src={siteConfig.assets.logo} alt={`${siteConfig.brand.name} logo`} width={1240} height={380} priority />
+          <Image src={siteConfig.assets.logo} alt={`${siteConfig.brand.name} logo`} width={1240} height={380} quality={100} priority />
         </motion.div>
         <motion.p initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.75, duration: 0.8, ease: luxuryEase }}>
           {siteConfig.brand.tagline}
@@ -437,7 +437,7 @@ function Hero() {
       <AnimatedParticles />
       <motion.div className="hero-copy" style={{ y: copyY }} initial="hidden" animate="visible" transition={{ staggerChildren: 0.14 }}>
         <motion.div variants={fadeUp} className="hero-mark">
-          <Image src={siteConfig.assets.logo} alt={siteConfig.brand.name} width={1040} height={340} priority />
+          <Image src={siteConfig.assets.logo} alt={siteConfig.brand.name} width={1040} height={340} quality={100} priority />
         </motion.div>
         <motion.p variants={fadeUp} className="eyebrow">{siteConfig.event.name}</motion.p>
         <motion.h1 variants={fadeUp}>{siteConfig.event.headline}</motion.h1>
@@ -594,7 +594,7 @@ function SocialFooter() {
   return (
     <motion.footer className="social-footer" aria-label="Site footer" initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-40px" }} variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1 } } }}>
       <motion.div variants={fadeUp}>
-        <Image src={siteConfig.assets.wordmark} alt={`${siteConfig.brand.name} wordmark`} width={360} height={40} />
+        <Image src={siteConfig.assets.wordmark} alt={`${siteConfig.brand.name} wordmark`} width={360} height={40} quality={100} />
       </motion.div>
       <motion.p variants={fadeUp}>{siteConfig.brand.tagline} — {siteConfig.event.dateLabel}</motion.p>
       <motion.small variants={fadeUp}>&copy; {new Date().getFullYear()} {siteConfig.brand.name}. All rights reserved.</motion.small>

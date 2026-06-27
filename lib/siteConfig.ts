@@ -76,7 +76,7 @@ export const siteConfig = {
     website: "https://aurestudio.in"
   },
   assets: {
-    logo: "/assets/brand/aure-logo-full.png",
+    logo: "/assets/brand/aure-logo-master.png",
     wordmark: "/assets/brand/aure-wordmark.png",
     mark: "/assets/brand/aure-mark.png",
     ogImage: "/assets/brand/og-aure-launch.jpg",
