@@ -65,7 +65,7 @@ export const siteConfig = {
   },
   rsvp: {
     recipientEmail: "hello@aurestudio.in",
-    whatsappNumber: "919947675375",
+    whatsappNumber: "916381565905",
     whatsappMessage:
       "Hello AURE STUDIO, I would like to confirm my attendance for the Exclusive Launch High Tea on 12 July 2026."
   },
