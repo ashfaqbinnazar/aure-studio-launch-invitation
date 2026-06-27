@@ -79,7 +79,7 @@ export const siteConfig = {
     logo: "/assets/brand/aure-logo-master.png",
     wordmark: "/assets/brand/aure-wordmark.png",
     mark: "/assets/brand/aure-mark.png",
-    ogImage: "/assets/brand/og-aure-launch.jpg",
+    ogImage: "/assets/brand/aure-logo-master.png",
     audio: "/audio/ambient.mp3",
     hero: "/assets/brand/hero-aure-invitation.jpg",
 
