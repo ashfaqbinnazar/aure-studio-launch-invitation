@@ -419,7 +419,7 @@ function Splash({ onEnter }: { onEnter: () => void }) {
           {siteConfig.brand.tagline}
         </motion.p>
         <motion.button className="enter-button" type="button" onClick={onEnter} ref={buttonRef} aria-label={`Enter the ${siteConfig.brand.name} invitation experience`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.25, duration: 0.8, ease: luxuryEase }} whileHover={{ y: -3 }} whileTap={{ scale: 0.97 }}>
-          Tap To Enter
+          Click Here to Open
           <ChevronDown size={18} aria-hidden="true" />
         </motion.button>
       </motion.div>
